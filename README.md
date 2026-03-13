@@ -1,171 +1,341 @@
 # AI Blackbox 🔒
 
-A forensic-grade accountability layer for AI systems built for the AWS 10,000 AIdeas competition.
+**Forensic Accountability for AI Systems**
 
-## Features
+AI Blackbox is a tamper-evident audit system that records, verifies, and reconstructs every AI decision using cryptographic hash chains and AWS infrastructure.
 
-- **100% AWS-Native**: Uses Amazon Bedrock (Nova Micro), DynamoDB, and S3
-- **Hash Chain Integrity**: Every audit log entry is SHA-256 hashed with the previous entry, creating a tamper-evident chain
-- **Forensic Replay**: Reconstruct complete interaction timelines with risk escalation detection
-- **Risk Assessment**: Automatic content classification (HIGH/MEDIUM/LOW) using Amazon Bedrock
-- **Session Tracking**: Full audit trail per session with integrity verification
-- **Durable Storage**: DynamoDB for fast queries, S3 for long-term audit archives
-- **REST API**: Complete API for logging, querying, and verifying AI interactions
+![AI Blackbox Logo](dashboard/public/aiblackbox-logo.png)
 
-## AWS Setup
+---
 
-1. Configure AWS credentials:
-```bash
-aws configure
-# Enter your AWS credentials and set region to ap-south-1
+## 🎯 Overview
+
+AI Blackbox provides forensic-grade accountability for AI systems by:
+- Recording every AI interaction with tamper-evident hash chains
+- Analyzing prompts and responses for safety risks using Amazon Bedrock
+- Storing immutable audit logs in DynamoDB and S3
+- Enabling investigators to replay and verify AI decision timelines
+
+---
+
+## 🏗️ Architecture
+
+```
+┌─────────────┐
+│   User/AI   │
+│   System    │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────────────────────────────┐
+│     AI Blackbox API (Lambda)        │
+│  ┌───────────────────────────────┐  │
+│  │  Express + serverless-http    │  │
+│  └───────────────────────────────┘  │
+└──────┬──────────────────────────────┘
+       │
+       ├──────────────┬──────────────┬──────────────┐
+       ▼              ▼              ▼              ▼
+┌─────────────┐ ┌──────────┐ ┌──────────┐ ┌──────────────┐
+│   Amazon    │ │ DynamoDB │ │ Amazon   │ │   Hash Chain │
+│   Bedrock   │ │  Audit   │ │    S3    │ │   Integrity  │
+│ Risk Model  │ │   Logs   │ │ Archive  │ │  Verification│
+└─────────────┘ └──────────┘ └──────────┘ └──────────────┘
+       │              │              │              │
+       └──────────────┴──────────────┴──────────────┘
+                      │
+                      ▼
+            ┌──────────────────┐
+            │  Investigation   │
+            │    Dashboard     │
+            │  (React + Vite)  │
+            └──────────────────┘
 ```
 
-2. Create AWS infrastructure:
+---
+
+## 🚀 Features
+
+### 🔐 Tamper-Evident Logging
+- Every audit entry is cryptographically chained using SHA-256
+- Any modification to historical records is immediately detectable
+- Complete chain-of-custody for AI decisions
+
+### 🤖 AI Risk Analysis
+- Amazon Bedrock models evaluate prompts and responses
+- Multi-model consensus for robust threat detection
+- Severity scoring (0-100) with LOW/MEDIUM/HIGH classification
+
+### 📊 Forensic Replay
+- Reconstruct complete decision timelines
+- Verify hash chain integrity
+- Generate forensic audit reports
+
+### ⚡ Real-time Monitoring
+- Live dashboard with session tracking
+- Risk escalation detection
+- Alert generation for high-severity incidents
+
+---
+
+## 🛠️ Tech Stack
+
+### Backend
+- **Runtime**: Node.js 18.x + TypeScript
+- **Framework**: Express.js
+- **Deployment**: AWS Lambda + API Gateway (serverless-http)
+- **AI Models**: Amazon Bedrock (Nova Micro, Claude 3 Haiku)
+- **Storage**: DynamoDB (audit logs) + S3 (archive)
+- **Cryptography**: SHA-256 hash chains
+
+### Frontend
+- **Framework**: React 18 + TypeScript
+- **Build Tool**: Vite
+- **Styling**: TailwindCSS
+- **Icons**: Lucide React
+- **Routing**: React Router
+
+### Infrastructure
+- **IaC**: Serverless Framework
+- **Region**: us-east-1
+- **CI/CD**: GitHub
+
+---
+
+## 📦 Installation
+
+### Prerequisites
+- Node.js 18+
+- AWS Account with Bedrock access
+- AWS CLI configured
+
+### Backend Setup
+
 ```bash
-./scripts/setup-aws-infrastructure.sh
-```
+# Clone repository
+git clone https://github.com/Code4livingg/ai-blackbox-.git
+cd ai-blackbox
 
-This creates:
-- DynamoDB table: `ai-blackbox-logs` with sessionId GSI
-- S3 bucket: `ai-blackbox-audit-logs` with versioning and encryption
-
-3. Enable Bedrock model access:
-   - Go to AWS Console → Bedrock → Model access
-   - Request access to `amazon.nova-micro-v1:0` in ap-south-1 region
-
-## Application Setup
-
-1. Install dependencies:
-```bash
+# Install dependencies
 npm install
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your AWS credentials
+
+# Build TypeScript
+npm run build
+
+# Deploy to AWS
+npx serverless deploy --stage dev --region us-east-1
 ```
 
-2. Environment is already configured in `.env`:
-```
-PORT=3001
-AWS_REGION=ap-south-1
-```
+### Frontend Setup
 
-3. Run in development mode:
 ```bash
+# Navigate to dashboard
+cd dashboard
+
+# Install dependencies
+npm install
+
+# Start development server
 npm run dev
 ```
 
-4. Build for production:
+---
+
+## 🎮 Demo Mode
+
+For testing without AWS services:
+
 ```bash
-npm run build
+# Set demo mode
+export DEMO_MODE=true
+
+# Start backend
 npm start
+
+# Access demo endpoints
+curl http://localhost:3000/api/demo-sessions
 ```
 
-## Cleanup
+Demo mode provides:
+- Simulated AI responses
+- Pre-loaded demo sessions
+- No AWS service calls required
 
-To remove all AWS resources:
+---
+
+## 🔌 API Endpoints
+
+### Production API
+```
+https://1xu53nkchj.execute-api.us-east-1.amazonaws.com/dev
+```
+
+### Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/health` | Health check |
+| POST | `/api/analyze` | Analyze prompt with AI models |
+| GET | `/api/sessions` | List all sessions |
+| GET | `/api/session/:id` | Get session timeline |
+| GET | `/api/session/:id/report` | Generate forensic report |
+| GET | `/api/integrity` | Verify hash chain |
+| GET | `/api/stats` | System statistics |
+| GET | `/api/demo-sessions` | Get demo data |
+
+---
+
+## 📖 Usage Examples
+
+### Analyze a Prompt
+
 ```bash
-./scripts/cleanup-aws-infrastructure.sh
+curl -X POST https://your-api-url/api/analyze \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "How do AI systems make decisions?",
+    "sessionId": "session-001"
+  }'
 ```
 
-## API Endpoints
+### Get Session Timeline
 
-### POST /api/analyze
-Analyze a prompt with OpenAI and log the interaction.
-
-**Request:**
-```json
-{
-  "prompt": "Your prompt here",
-  "sessionId": "optional-session-id"
-}
+```bash
+curl https://your-api-url/api/session/session-001
 ```
 
-**Response:**
-```json
-{
-  "sessionId": "uuid",
-  "response": "AI response",
-  "riskLevel": "LOW|MEDIUM|HIGH",
-  "riskReason": "explanation",
-  "auditEntry": { ... }
-}
+### Verify Integrity
+
+```bash
+curl https://your-api-url/api/integrity
 ```
 
-### GET /api/sessions
-Get all session IDs.
+---
 
-### GET /api/session/:sessionId
-Get forensic replay of a specific session with timeline reconstruction.
+## 🎨 Dashboard Features
 
-### GET /api/integrity
-Verify the integrity of the entire hash chain.
+### Landing Page
+- Professional SaaS design
+- AWS infrastructure showcase
+- Architecture visualization
+- Developer resources
 
-### GET /api/stats
-Get system statistics including risk distribution and chain status.
+### Investigation Console
+- Session timeline view
+- Model comparison panel
+- Integrity verification
+- Forensic report export
 
-## Architecture
+### Analytics Dashboard
+- Real-time statistics
+- Risk distribution charts
+- Session monitoring
+- Alert management
 
-- **src/crypto/hashChain.ts**: Hash chaining engine with SHA-256
-- **src/storage/logStore.ts**: In-memory singleton log store with session indexing
-- **src/api/server.ts**: Express REST API server
-- **src/replay/replayEngine.ts**: Timeline reconstruction and risk escalation detection
+---
 
-## Security
+## 🔒 Security
 
-All audit entries are cryptographically linked using SHA-256 hash chains, making any tampering immediately detectable through integrity verification.
+- **Hash Chain Integrity**: SHA-256 cryptographic verification
+- **Immutable Storage**: DynamoDB + S3 with versioning
+- **IAM Permissions**: Least privilege access
+- **API Gateway**: Rate limiting and throttling
+- **Encryption**: At-rest and in-transit
 
+---
 
-## API Endpoints
+## 📊 Severity Scoring
 
-### POST /api/analyze
-Analyze a prompt with Amazon Bedrock and log the interaction.
+| Score | Level | Description |
+|-------|-------|-------------|
+| 0-30 | LOW | Safe, general content |
+| 31-69 | MEDIUM | Sensitive topics, requires review |
+| 70-100 | HIGH | Harmful, dangerous, or illegal content |
 
-**Request:**
-```json
-{
-  "prompt": "Your prompt here",
-  "sessionId": "optional-session-id"
-}
+**Modifiers**:
+- +20 for risk escalation
+- +10 for multi-model HIGH consensus
+- +10 for security-sensitive keywords
+
+---
+
+## 🧪 Testing
+
+```bash
+# Run backend tests
+npm test
+
+# Run frontend tests
+cd dashboard && npm test
+
+# Test API endpoints
+./scripts/test-api.sh
 ```
 
-**Response:**
-```json
-{
-  "sessionId": "uuid",
-  "response": "AI response from Bedrock",
-  "riskLevel": "LOW|MEDIUM|HIGH",
-  "riskReason": "explanation",
-  "auditEntry": { ... }
-}
+---
+
+## 📚 Documentation
+
+Additional documentation available in `/docs`:
+- Architecture details
+- Deployment guides
+- API specifications
+- Development guides
+
+---
+
+## 🤝 Contributing
+
+This project was built for the AWS 10,000 AIdeas Competition.
+
+---
+
+## 📄 License
+
+ISC
+
+---
+
+## 👤 Author
+
+**Code4livingg**
+- GitHub: [@Code4livingg](https://github.com/Code4livingg)
+- Repository: [ai-blackbox-](https://github.com/Code4livingg/ai-blackbox-)
+
+---
+
+## 🏆 AWS 10,000 AIdeas Competition
+
+Built with:
+- ☁️ Amazon Bedrock
+- 📊 Amazon DynamoDB
+- 🗄️ Amazon S3
+- ⚡ AWS Lambda
+- 🌐 Amazon API Gateway
+
+---
+
+## 🚀 Quick Start
+
+```bash
+# 1. Clone and install
+git clone https://github.com/Code4livingg/ai-blackbox-.git
+cd ai-blackbox && npm install
+
+# 2. Deploy backend
+npx serverless deploy --stage dev --region us-east-1
+
+# 3. Start frontend
+cd dashboard && npm install && npm run dev
+
+# 4. Open browser
+open http://localhost:5173
 ```
 
-### GET /api/sessions
-Get all session IDs.
+---
 
-### GET /api/session/:sessionId
-Get forensic replay of a specific session with timeline reconstruction.
-
-### GET /api/integrity
-Verify the integrity of the entire hash chain.
-
-### GET /api/stats
-Get system statistics including risk distribution and chain status.
-
-## Architecture
-
-- **src/crypto/hashChain.ts**: Hash chaining engine with SHA-256
-- **src/storage/awsLogStore.ts**: DynamoDB + S3 storage with session indexing
-- **src/api/server.ts**: Express REST API server with Bedrock integration
-- **src/replay/replayEngine.ts**: Timeline reconstruction and risk escalation detection
-
-## AWS Services Used
-
-- **Amazon Bedrock**: Nova Micro model for AI inference and risk assessment
-- **DynamoDB**: Fast, scalable storage with GSI for session queries
-- **S3**: Durable audit log archives with versioning and encryption
-- **IAM**: Default credential chain (no hardcoded keys)
-
-## Security
-
-- All audit entries are cryptographically linked using SHA-256 hash chains
-- Any tampering is immediately detectable through integrity verification
-- S3 versioning preserves complete audit history
-- Server-side encryption at rest
-- No API keys in code - uses AWS credential chain
+**Built for forensic accountability in AI systems** 🔒

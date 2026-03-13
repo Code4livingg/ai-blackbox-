@@ -5,10 +5,9 @@ frameworkVersion: '3'
 provider:
   name: aws
   runtime: nodejs18.x
-  region: ap-south-1
+  region: us-east-1
   stage: ${opt:stage, 'dev'}
   environment:
-    AWS_REGION: ap-south-1
     DYNAMODB_TABLE: audit-log-entries-${self:provider.stage}
     S3_BUCKET: ai-blackbox-audit-archive-${self:provider.stage}
   iam:
@@ -17,7 +16,7 @@ provider:
         - Effect: Allow
           Action:
             - bedrock:InvokeModel
-          Resource: 'arn:aws:bedrock:ap-south-1::foundation-model/*'
+          Resource: 'arn:aws:bedrock:us-east-1::foundation-model/*'
         - Effect: Allow
           Action:
             - dynamodb:Query
@@ -26,7 +25,7 @@ provider:
             - dynamodb:PutItem
             - dynamodb:UpdateItem
             - dynamodb:DeleteItem
-          Resource: 'arn:aws:dynamodb:ap-south-1:*:table/audit-log-entries-*'
+          Resource: 'arn:aws:dynamodb:us-east-1:*:table/audit-log-entries-*'
         - Effect: Allow
           Action:
             - s3:GetObject
@@ -36,13 +35,11 @@ provider:
             - 'arn:aws:s3:::ai-blackbox-audit-archive-*'
             - 'arn:aws:s3:::ai-blackbox-audit-archive-*/*'
 
-plugins:
-  - serverless-plugin-typescript
-  - serverless-http
+plugins: []
 
 functions:
   api:
-    handler: src/api/server.handler
+    handler: dist/handler.handler
     events:
       - http:
           path: /{proxy+}
@@ -98,4 +95,6 @@ package:
     - '!node_modules/**'
     - '!.git/**'
     - '!.env'
-    - '!dist/**'
+    - '!dashboard/**'
+    - 'dist/**'
+    - 'node_modules/**'

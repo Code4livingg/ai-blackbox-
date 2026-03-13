@@ -3,9 +3,8 @@ import { DynamoDBDocumentClient, PutCommand, QueryCommand, ScanCommand } from '@
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { type AuditEntry, type AuditEntryInput, buildAuditEntry, verifyChainIntegrity } from '../crypto/hashChain.js';
 
-const TABLE_NAME = 'ai-blackbox-logs';
-const BUCKET_NAME = 'ai-blackbox-audit-logs';
-const GSI_NAME = 'sessionId-index';
+const TABLE_NAME = process.env.DYNAMODB_TABLE || 'ai-blackbox-logs';
+const BUCKET_NAME = process.env.S3_BUCKET || 'ai-blackbox-audit-logs';
 
 class AWSLogStore {
   private dynamoClient: DynamoDBDocumentClient;
@@ -56,7 +55,6 @@ class AWSLogStore {
   async getBySession(sessionId: string): Promise<AuditEntry[]> {
     const result = await this.dynamoClient.send(new QueryCommand({
       TableName: TABLE_NAME,
-      IndexName: GSI_NAME,
       KeyConditionExpression: 'sessionId = :sessionId',
       ExpressionAttributeValues: {
         ':sessionId': sessionId,

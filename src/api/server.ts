@@ -11,18 +11,55 @@ import {
   generateAlertIfNeeded,
   type ModelResult 
 } from '../risk/severityScoring.js';
+import { generateDemoResponse, DEMO_SESSIONS } from '../demo/demoData.js';
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3001;
-const AWS_REGION = process.env.AWS_REGION || 'ap-south-1';
+const PORT = process.env.PORT || 3000;
+const AWS_REGION = process.env.AWS_REGION || 'us-east-1';
 
 // Initialize Bedrock client
 const bedrockClient = new BedrockRuntimeClient({ region: AWS_REGION });
 
 app.use(cors());
 app.use(express.json());
+
+/**
+ * GET / - Health check endpoint
+ */
+app.get('/', (_req: Request, res: Response): void => {
+  res.json({ 
+    status: 'ok', 
+    service: 'AI Blackbox',
+    timestamp: new Date().toISOString(),
+    region: AWS_REGION
+  });
+});
+
+/**
+ * GET /api/health - Health check endpoint
+ */
+app.get('/api/health', (_req: Request, res: Response): void => {
+  res.json({ 
+    status: 'ok', 
+    service: 'AI Blackbox API',
+    timestamp: new Date().toISOString(),
+    region: AWS_REGION,
+    demoMode: process.env.DEMO_MODE === 'true'
+  });
+});
+
+/**
+ * GET /api/demo-sessions - Get preloaded demo sessions
+ */
+app.get('/api/demo-sessions', (_req: Request, res: Response): void => {
+  res.json({
+    sessions: DEMO_SESSIONS,
+    count: DEMO_SESSIONS.length,
+    message: 'Demo sessions for testing and demonstration'
+  });
+});
 
 /**
  * Invokes Amazon Bedrock model with specified model ID
@@ -151,6 +188,13 @@ app.post('/api/analyze', async (req: Request, res: Response): Promise<void> => {
 
     if (!prompt) {
       res.status(400).json({ error: 'Prompt is required' });
+      return;
+    }
+
+    // Demo mode: return simulated response
+    if (process.env.DEMO_MODE === 'true') {
+      const demoResponse = generateDemoResponse(prompt, sessionId);
+      res.json(demoResponse);
       return;
     }
 
@@ -497,16 +541,20 @@ app.get('/api/stats', async (_req: Request, res: Response): Promise<void> => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`🔒 AI Blackbox (AWS-Native) running on port ${PORT}`);
-  console.log(`🌍 Region: ${AWS_REGION}`);
-  console.log(`🤖 Model: apac.amazon.nova-micro-v1:0`);
-  console.log(`📊 Endpoints:`);
-  console.log(`   POST /api/analyze`);
-  console.log(`   GET  /api/sessions`);
-  console.log(`   GET  /api/session/:sessionId`);
-  console.log(`   GET  /api/integrity`);
-  console.log(`   GET  /api/stats`);
-});
+// Only start server if running locally (not in Lambda)
+if (!process.env.AWS_LAMBDA_FUNCTION_NAME) {
+  const PORT_NUMBER = Number(PORT);
+  app.listen(PORT_NUMBER, () => {
+    console.log(`🔒 AI Blackbox API running on port ${PORT_NUMBER}`);
+    console.log(`🌍 Region: ${AWS_REGION}`);
+    console.log(`📊 Endpoints:`);
+    console.log(`   GET  /api/health`);
+    console.log(`   POST /api/analyze`);
+    console.log(`   GET  /api/sessions`);
+    console.log(`   GET  /api/session/:sessionId`);
+    console.log(`   GET  /api/integrity`);
+    console.log(`   GET  /api/stats`);
+  });
+}
 
 export default app;
