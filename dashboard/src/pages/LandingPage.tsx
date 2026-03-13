@@ -211,6 +211,101 @@ export default function LandingPage({ onNavigate }: { onNavigate: (page: string)
                           'bg-green-500/20 text-green-400 border border-green-500/50'
                         }`}>
                           {demoResult.severityLevel} RISK
+
+          {/* Floating Product Preview */}
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 1 }}
+            className="flex justify-center items-center mt-32 relative"
+          >
+            {/* Glow Background */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-[900px] h-[600px] bg-[radial-gradient(circle_at_center,rgba(0,200,255,0.25),transparent)] blur-3xl opacity-60" />
+            </div>
+
+            {/* Floating Card */}
+            <div className="relative max-w-5xl w-full transform-gpu hover:scale-[1.02] transition-all duration-500 animate-[floatCard_6s_ease-in-out_infinite]">
+              <div className="bg-slate-900/70 backdrop-blur-xl border border-cyan-500/20 rounded-2xl shadow-[0_0_80px_rgba(0,200,255,0.15)] p-6 md:p-8">
+                {/* Dashboard Header */}
+                <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-700/50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                    <h3 className="text-xl md:text-2xl font-bold text-white">AI Blackbox Dashboard</h3>
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="w-3 h-3 rounded-full bg-red-400/50" />
+                    <div className="w-3 h-3 rounded-full bg-yellow-400/50" />
+                    <div className="w-3 h-3 rounded-full bg-green-400/50" />
+                  </div>
+                </div>
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 1.2 }}
+                    className="bg-slate-800 rounded-xl p-4 md:p-6 border border-slate-700 hover:border-cyan-500/30 transition-colors"
+                  >
+                    <p className="text-slate-400 text-xs md:text-sm mb-2">Total Sessions</p>
+                    <p className="text-3xl md:text-4xl font-bold text-[#00e1ff]">1,247</p>
+                    <p className="text-green-400 text-xs md:text-sm mt-2">↑ 12% this week</p>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 1.3 }}
+                    className="bg-slate-800 rounded-xl p-4 md:p-6 border border-slate-700 hover:border-cyan-500/30 transition-colors"
+                  >
+                    <p className="text-slate-400 text-xs md:text-sm mb-2">Risk Alerts</p>
+                    <p className="text-3xl md:text-4xl font-bold text-yellow-400">23</p>
+                    <p className="text-yellow-400 text-xs md:text-sm mt-2">⚠ 3 high severity</p>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 1.4 }}
+                    className="bg-slate-800 rounded-xl p-4 md:p-6 border border-slate-700 hover:border-cyan-500/30 transition-colors"
+                  >
+                    <p className="text-slate-400 text-xs md:text-sm mb-2">Integrity Status</p>
+                    <p className="text-3xl md:text-4xl font-bold text-green-400">99.8%</p>
+                    <p className="text-green-400 text-xs md:text-sm mt-2">✓ All chains valid</p>
+                  </motion.div>
+                </div>
+
+                {/* Activity Timeline Preview */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5, delay: 1.5 }}
+                  className="bg-slate-800/50 rounded-xl p-4 md:p-6 border border-slate-700/50"
+                >
+                  <p className="text-slate-400 text-xs md:text-sm mb-4">Recent Activity</p>
+                  <div className="space-y-3">
+                    {[
+                      { time: '2m ago', action: 'High-risk prompt detected', status: 'warning' },
+                      { time: '5m ago', action: 'Session integrity verified', status: 'success' },
+                      { time: '12m ago', action: 'New AI model analyzed', status: 'info' }
+                    ].map((item, idx) => (
+                      <div key={idx} className="flex items-center gap-3 text-xs md:text-sm">
+                        <div className={`w-2 h-2 rounded-full ${
+                          item.status === 'warning' ? 'bg-yellow-400' :
+                          item.status === 'success' ? 'bg-green-400' :
+                          'bg-cyan-400'
+                        }`} />
+                        <span className="text-slate-500">{item.time}</span>
+                        <span className="text-slate-300 flex-1">{item.action}</span>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              </div>
+            </div>
+          </motion.div>
+
                         </div>
                       </div>
                       
