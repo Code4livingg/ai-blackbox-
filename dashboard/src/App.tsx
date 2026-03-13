@@ -30,10 +30,14 @@ function App() {
     setInvestigationSessionId(null);
   };
 
+  const handleNavigate = (page: string) => {
+    setCurrentPage(page as Page);
+  };
+
   const renderPage = () => {
     switch (currentPage) {
       case 'landing':
-        return <LandingPage />;
+        return <LandingPage onNavigate={handleNavigate} />;
       case 'dashboard':
         return <DashboardPage />;
       case 'analyze':
@@ -52,14 +56,14 @@ function App() {
           <DashboardPage />
         );
       default:
-        return <LandingPage />;
+        return <LandingPage onNavigate={handleNavigate} />;
     }
   };
 
   return (
     <>
       {currentPage === 'landing' ? (
-        <LandingPage onNavigate={setCurrentPage} />
+        <LandingPage onNavigate={handleNavigate} />
       ) : (
         <div className="min-h-screen bg-slate-950 flex">
           {/* Sidebar */}
