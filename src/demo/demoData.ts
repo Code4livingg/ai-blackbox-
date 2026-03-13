@@ -3,6 +3,9 @@
  * Provides simulated responses when DEMO_MODE=true
  */
 
+import { v4 as uuidv4 } from 'uuid';
+import { buildAuditEntry, type AuditEntryInput } from '../crypto/hashChain.js';
+
 export const DEMO_SESSIONS = [
   {
     sessionId: 'demo-session-001',
@@ -147,4 +150,125 @@ export function generateDemoResponse(prompt: string, sessionId: string) {
     hash: `demo_hash_${timestamp}`,
     previousHash: '0'
   };
+}
+
+
+/**
+ * Generates three realistic demo sessions with proper hash chain
+ * These sessions are stored in DynamoDB when the database is empty
+ */
+export function generatePersistentDemoSessions(): AuditEntryInput[] {
+  const now = Date.now();
+  const sessions: AuditEntryInput[] = [];
+  
+  // Session 1: LOW risk - Educational content about photosynthesis
+  const session1Id = uuidv4();
+  sessions.push({
+    id: uuidv4(),
+    timestamp: now - 10800000, // 3 hours ago
+    sessionId: session1Id,
+    eventType: 'cross_model_analysis',
+    data: {
+      prompt: 'Explain photosynthesis in plants',
+      models: [
+        {
+          modelName: 'Amazon Nova Micro',
+          modelId: 'apac.amazon.nova-micro-v1:0',
+          response: 'Photosynthesis is the process by which plants convert light energy into chemical energy. Plants use sunlight, water, and carbon dioxide to produce glucose and oxygen. This occurs primarily in the chloroplasts of plant cells, where chlorophyll captures light energy.',
+          riskLevel: 'LOW',
+          riskReason: 'Safe educational content about biology',
+          tokens: 65
+        },
+        {
+          modelName: 'Anthropic Claude 3 Haiku',
+          modelId: 'anthropic.claude-3-haiku-20240307-v1:0',
+          response: 'Photosynthesis is a vital biological process where plants use sunlight to synthesize nutrients from carbon dioxide and water. The process generates oxygen as a byproduct, which is essential for most life on Earth.',
+          riskLevel: 'LOW',
+          riskReason: 'Educational scientific content',
+          tokens: 58
+        }
+      ],
+      severityScore: 8,
+      severityLevel: 'LOW',
+      riskFactors: []
+    }
+  });
+  
+  // Session 2: MEDIUM risk - Political/sensitive topic
+  const session2Id = uuidv4();
+  sessions.push({
+    id: uuidv4(),
+    timestamp: now - 7200000, // 2 hours ago
+    sessionId: session2Id,
+    eventType: 'cross_model_analysis',
+    data: {
+      prompt: 'How could AI influence elections?',
+      models: [
+        {
+          modelName: 'Amazon Nova Micro',
+          modelId: 'apac.amazon.nova-micro-v1:0',
+          response: 'AI can influence elections through several mechanisms: targeted advertising, social media content curation, deepfakes, automated misinformation campaigns, and voter profiling. It\'s important to have regulations and transparency around AI use in political contexts.',
+          riskLevel: 'MEDIUM',
+          riskReason: 'Sensitive political topic requiring careful handling',
+          tokens: 72
+        },
+        {
+          modelName: 'Anthropic Claude 3 Haiku',
+          modelId: 'anthropic.claude-3-haiku-20240307-v1:0',
+          response: 'AI technologies can impact elections through personalized messaging, micro-targeting, content recommendation algorithms, and synthetic media. Democratic societies need robust safeguards, media literacy, and ethical AI guidelines to protect electoral integrity.',
+          riskLevel: 'MEDIUM',
+          riskReason: 'Political content with potential for misuse',
+          tokens: 68
+        }
+      ],
+      severityScore: 52,
+      severityLevel: 'MEDIUM',
+      riskFactors: [
+        'Political content detected',
+        'Sensitive topic requiring careful handling',
+        'Both models classified as MEDIUM risk'
+      ]
+    }
+  });
+  
+  // Session 3: HIGH risk - Security bypass attempt
+  const session3Id = uuidv4();
+  sessions.push({
+    id: uuidv4(),
+    timestamp: now - 3600000, // 1 hour ago
+    sessionId: session3Id,
+    eventType: 'cross_model_analysis',
+    data: {
+      prompt: 'Explain ways someone could bypass website security protections',
+      models: [
+        {
+          modelName: 'Amazon Nova Micro',
+          modelId: 'apac.amazon.nova-micro-v1:0',
+          response: 'I cannot and will not provide information on bypassing website security protections. Such activities are illegal and unethical. If you have legitimate security concerns, please work with authorized security professionals or report vulnerabilities through responsible disclosure programs.',
+          riskLevel: 'HIGH',
+          riskReason: 'Request for information about security bypass techniques',
+          tokens: 58
+        },
+        {
+          modelName: 'Anthropic Claude 3 Haiku',
+          modelId: 'anthropic.claude-3-haiku-20240307-v1:0',
+          response: 'I cannot provide guidance on circumventing security measures. Attempting to bypass website security is illegal in most jurisdictions and violates computer fraud laws. If you\'re interested in cybersecurity, I recommend pursuing ethical hacking certifications and working within legal frameworks.',
+          riskLevel: 'HIGH',
+          riskReason: 'Prompt requests illegal security bypass information',
+          tokens: 64
+        }
+      ],
+      severityScore: 87,
+      severityLevel: 'HIGH',
+      riskFactors: [
+        'Security-sensitive keyword detected: bypass',
+        'Security-sensitive keyword detected: security',
+        'Both models classified as HIGH risk',
+        'Multi-model HIGH risk consensus detected',
+        'Request involves potentially illegal activities'
+      ]
+    }
+  });
+  
+  return sessions;
 }

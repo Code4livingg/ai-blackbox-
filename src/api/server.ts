@@ -11,7 +11,7 @@ import {
   generateAlertIfNeeded,
   type ModelResult 
 } from '../risk/severityScoring.js';
-import { generateDemoResponse, DEMO_SESSIONS } from '../demo/demoData.js';
+import { generateDemoResponse, DEMO_SESSIONS, generatePersistentDemoSessions } from '../demo/demoData.js';
 
 dotenv.config();
 
@@ -314,10 +314,29 @@ app.post('/api/analyze', async (req: Request, res: Response): Promise<void> => {
 
 /**
  * GET /api/sessions - Get all session IDs
+ * Auto-generates demo sessions if database is empty
  */
 app.get('/api/sessions', async (_req: Request, res: Response): Promise<void> => {
   try {
-    const sessions = await awsLogStore.getAllSessions();
+    let sessions = await awsLogStore.getAllSessions();
+    
+    // If no sessions exist, generate and store demo sessions
+    if (sessions.length === 0) {
+      console.log('📝 No sessions found. Generating demo sessions...');
+      
+      const demoSessions = generatePersistentDemoSessions();
+      
+      // Store each demo session in DynamoDB with proper hash chain
+      for (const sessionInput of demoSessions) {
+        await awsLogStore.append(sessionInput);
+      }
+      
+      // Retrieve the newly created sessions
+      sessions = await awsLogStore.getAllSessions();
+      
+      console.log(`✅ Generated ${sessions.length} demo sessions`);
+    }
+    
     res.json({ sessions, count: sessions.length });
   } catch (error) {
     console.error('Sessions error:', error);
