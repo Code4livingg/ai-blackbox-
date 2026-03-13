@@ -1,18 +1,16 @@
 {
-  "version": 2,
   "buildCommand": "cd dashboard && npm install && npm run build",
   "outputDirectory": "dashboard/dist",
-  "routes": [
+  "installCommand": "npm install",
+  "framework": null,
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
+      "source": "/api/:path*",
+      "destination": "/api/:path*"
     },
     {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
