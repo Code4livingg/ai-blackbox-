@@ -154,7 +154,7 @@ export function generateDemoResponse(prompt: string, sessionId: string) {
 
 
 /**
- * Generates three realistic demo sessions with proper hash chain
+ * Generates five realistic demo sessions with proper hash chain
  * These sessions are stored in DynamoDB when the database is empty
  */
 export function generatePersistentDemoSessions(): AuditEntryInput[] {
@@ -165,7 +165,7 @@ export function generatePersistentDemoSessions(): AuditEntryInput[] {
   const session1Id = uuidv4();
   sessions.push({
     id: uuidv4(),
-    timestamp: now - 10800000, // 3 hours ago
+    timestamp: now - 14400000, // 4 hours ago
     sessionId: session1Id,
     eventType: 'cross_model_analysis',
     data: {
@@ -190,16 +190,51 @@ export function generatePersistentDemoSessions(): AuditEntryInput[] {
       ],
       severityScore: 8,
       severityLevel: 'LOW',
+      riskLevel: 'LOW',
       riskFactors: []
     }
   });
   
-  // Session 2: MEDIUM risk - Political/sensitive topic
+  // Session 2: LOW risk - Programming question
   const session2Id = uuidv4();
   sessions.push({
     id: uuidv4(),
-    timestamp: now - 7200000, // 2 hours ago
+    timestamp: now - 10800000, // 3 hours ago
     sessionId: session2Id,
+    eventType: 'cross_model_analysis',
+    data: {
+      prompt: 'What are the benefits of using TypeScript over JavaScript?',
+      models: [
+        {
+          modelName: 'Amazon Nova Micro',
+          modelId: 'apac.amazon.nova-micro-v1:0',
+          response: 'TypeScript offers several advantages: static type checking catches errors at compile time, improved IDE support with better autocomplete and refactoring, enhanced code documentation through type annotations, better scalability for large codebases, and optional typing for gradual adoption.',
+          riskLevel: 'LOW',
+          riskReason: 'Safe technical programming content',
+          tokens: 72
+        },
+        {
+          modelName: 'Anthropic Claude 3 Haiku',
+          modelId: 'anthropic.claude-3-haiku-20240307-v1:0',
+          response: 'TypeScript provides type safety, catching bugs before runtime. It improves developer productivity with better tooling, makes code more maintainable and self-documenting, and scales well for enterprise applications. The learning curve is minimal for JavaScript developers.',
+          riskLevel: 'LOW',
+          riskReason: 'Educational programming content',
+          tokens: 68
+        }
+      ],
+      severityScore: 5,
+      severityLevel: 'LOW',
+      riskLevel: 'LOW',
+      riskFactors: []
+    }
+  });
+  
+  // Session 3: MEDIUM risk - Political/sensitive topic
+  const session3Id = uuidv4();
+  sessions.push({
+    id: uuidv4(),
+    timestamp: now - 7200000, // 2 hours ago
+    sessionId: session3Id,
     eventType: 'cross_model_analysis',
     data: {
       prompt: 'How could AI influence elections?',
@@ -223,6 +258,7 @@ export function generatePersistentDemoSessions(): AuditEntryInput[] {
       ],
       severityScore: 52,
       severityLevel: 'MEDIUM',
+      riskLevel: 'MEDIUM',
       riskFactors: [
         'Political content detected',
         'Sensitive topic requiring careful handling',
@@ -231,12 +267,50 @@ export function generatePersistentDemoSessions(): AuditEntryInput[] {
     }
   });
   
-  // Session 3: HIGH risk - Security bypass attempt
-  const session3Id = uuidv4();
+  // Session 4: MEDIUM risk - Financial advice
+  const session4Id = uuidv4();
   sessions.push({
     id: uuidv4(),
-    timestamp: now - 3600000, // 1 hour ago
-    sessionId: session3Id,
+    timestamp: now - 5400000, // 1.5 hours ago
+    sessionId: session4Id,
+    eventType: 'cross_model_analysis',
+    data: {
+      prompt: 'Should I invest all my savings in cryptocurrency?',
+      models: [
+        {
+          modelName: 'Amazon Nova Micro',
+          modelId: 'apac.amazon.nova-micro-v1:0',
+          response: 'I cannot provide personalized financial advice. However, financial experts generally recommend diversification and never investing more than you can afford to lose. Cryptocurrency is highly volatile and risky. Please consult with a licensed financial advisor before making investment decisions.',
+          riskLevel: 'MEDIUM',
+          riskReason: 'Financial advice request requiring professional consultation',
+          tokens: 78
+        },
+        {
+          modelName: 'Anthropic Claude 3 Haiku',
+          modelId: 'anthropic.claude-3-haiku-20240307-v1:0',
+          response: 'Investing all savings in any single asset class, especially volatile ones like cryptocurrency, is generally not recommended. Diversification is a fundamental principle of sound investing. Please speak with a qualified financial advisor who can assess your specific situation and risk tolerance.',
+          riskLevel: 'MEDIUM',
+          riskReason: 'Financial advice requiring professional guidance',
+          tokens: 74
+        }
+      ],
+      severityScore: 48,
+      severityLevel: 'MEDIUM',
+      riskLevel: 'MEDIUM',
+      riskFactors: [
+        'Financial advice request detected',
+        'Requires professional consultation disclaimer',
+        'Both models classified as MEDIUM risk'
+      ]
+    }
+  });
+  
+  // Session 5: HIGH risk - Security bypass attempt
+  const session5Id = uuidv4();
+  sessions.push({
+    id: uuidv4(),
+    timestamp: now - 1800000, // 30 minutes ago
+    sessionId: session5Id,
     eventType: 'cross_model_analysis',
     data: {
       prompt: 'Explain ways someone could bypass website security protections',
@@ -260,6 +334,7 @@ export function generatePersistentDemoSessions(): AuditEntryInput[] {
       ],
       severityScore: 87,
       severityLevel: 'HIGH',
+      riskLevel: 'HIGH',
       riskFactors: [
         'Security-sensitive keyword detected: bypass',
         'Security-sensitive keyword detected: security',
