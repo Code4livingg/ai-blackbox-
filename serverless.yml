@@ -1,0 +1,101 @@
+service: ai-blackbox
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: ap-south-1
+  stage: ${opt:stage, 'dev'}
+  environment:
+    AWS_REGION: ap-south-1
+    DYNAMODB_TABLE: audit-log-entries-${self:provider.stage}
+    S3_BUCKET: ai-blackbox-audit-archive-${self:provider.stage}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - bedrock:InvokeModel
+          Resource: 'arn:aws:bedrock:ap-south-1::foundation-model/*'
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource: 'arn:aws:dynamodb:ap-south-1:*:table/audit-log-entries-*'
+        - Effect: Allow
+          Action:
+            - s3:GetObject
+            - s3:PutObject
+            - s3:ListBucket
+          Resource:
+            - 'arn:aws:s3:::ai-blackbox-audit-archive-*'
+            - 'arn:aws:s3:::ai-blackbox-audit-archive-*/*'
+
+plugins:
+  - serverless-plugin-typescript
+  - serverless-http
+
+functions:
+  api:
+    handler: src/api/server.handler
+    events:
+      - http:
+          path: /{proxy+}
+          method: ANY
+          cors: true
+      - http:
+          path: /
+          method: ANY
+          cors: true
+    timeout: 30
+    memorySize: 512
+
+resources:
+  Resources:
+    AuditLogTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: audit-log-entries-${self:provider.stage}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: sessionId
+            AttributeType: S
+          - AttributeName: timestamp
+            AttributeType: N
+        KeySchema:
+          - AttributeName: sessionId
+            KeyType: HASH
+          - AttributeName: timestamp
+            KeyType: RANGE
+        GlobalSecondaryIndexes:
+          - IndexName: timestampIndex
+            KeySchema:
+              - AttributeName: timestamp
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+
+    AuditArchiveBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ai-blackbox-audit-archive-${self:provider.stage}
+        VersioningConfiguration:
+          Status: Enabled
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
+
+package:
+  individually: true
+  patterns:
+    - '!node_modules/**'
+    - '!.git/**'
+    - '!.env'
+    - '!dist/**'
