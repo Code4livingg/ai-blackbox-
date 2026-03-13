@@ -1,14 +1,7 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "dashboard/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
-    }
-  ],
+  "buildCommand": "cd dashboard && npm install && npm run build",
+  "outputDirectory": "dashboard/dist",
   "routes": [
     {
       "src": "/api/(.*)",
@@ -19,40 +12,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/dashboard/$1"
+      "dest": "/index.html"
     }
-  ],
-  "rewrites": [
-    {
-      "source": "/api/log",
-      "destination": "/api/log"
-    },
-    {
-      "source": "/api/sessions",
-      "destination": "/api/sessions"
-    },
-    {
-      "source": "/api/stats",
-      "destination": "/api/stats"
-    },
-    {
-      "source": "/api/analyze",
-      "destination": "/api/analyze"
-    },
-    {
-      "source": "/api/integrity",
-      "destination": "/api/integrity"
-    },
-    {
-      "source": "/api/demo",
-      "destination": "/api/demo"
-    },
-    {
-      "source": "/api/session/:sessionId",
-      "destination": "/api/session"
-    }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  ]
 }

@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { store } from './store';
+import { store, type AuditEntry } from './store';
 
-export default function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Initialize demo data if empty
   store.initializeDemoData();
 
@@ -12,7 +12,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'sessionId or logId required' });
     }
 
-    let entries = [];
+    let entries: AuditEntry[] = [];
     if (sessionId) {
       entries = store.getBySession(sessionId);
     } else if (logId) {
@@ -30,7 +30,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     const mediumRiskCount = entries.filter(e => e.riskLevel === 'MEDIUM').length;
     const avgRiskScore = entries.reduce((sum, e) => sum + e.riskScore, 0) / entries.length;
 
-    const suspiciousPatterns = [];
+    const suspiciousPatterns: string[] = [];
     if (highRiskCount > 0) {
       suspiciousPatterns.push(`${highRiskCount} high-risk interaction(s) detected`);
     }

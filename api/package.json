@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "dependencies": {
-    "@vercel/node": "^3.0.0"
+    "@vercel/node": "^3.0.21"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.5"
   }
 }
