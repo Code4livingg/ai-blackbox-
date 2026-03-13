@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Activity, Database, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Activity, Database, CheckCircle, XCircle, Clock, Sparkles } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const API_URL = 'http://localhost:3001';
+const API_URL = '/api';
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<any>(null);
   const [chartData, setChartData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [generatingDemo, setGeneratingDemo] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -18,7 +19,7 @@ export default function DashboardPage() {
 
   const fetchData = async () => {
     try {
-      const statsRes = await axios.get(`${API_URL}/api/stats`);
+      const statsRes = await axios.get(`${API_URL}/stats`);
       
       setStats(statsRes.data);
       
@@ -40,6 +41,21 @@ export default function DashboardPage() {
     }
   };
 
+  const handleGenerateDemo = async () => {
+    setGeneratingDemo(true);
+    try {
+      await axios.post(`${API_URL}/demo`);
+      // Refresh data after generating demo
+      await fetchData();
+      alert('Demo activity generated successfully!');
+    } catch (error) {
+      console.error('Failed to generate demo:', error);
+      alert('Failed to generate demo activity');
+    } finally {
+      setGeneratingDemo(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -50,7 +66,17 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-white mb-8">Dashboard</h1>
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-3xl font-bold text-white">Dashboard</h1>
+        <button
+          onClick={handleGenerateDemo}
+          disabled={generatingDemo}
+          className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-3 rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <Sparkles className="w-5 h-5" />
+          {generatingDemo ? 'Generating...' : 'Generate Demo AI Activity'}
+        </button>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="bg-slate-900 rounded-xl p-6 border border-slate-800 shadow-lg hover:border-blue-500/50 transition-colors">

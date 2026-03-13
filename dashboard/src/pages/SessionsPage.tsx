@@ -4,7 +4,7 @@ import { ChevronRight, Clock, Download, Search } from 'lucide-react';
 import RiskBadge from '../components/RiskBadge';
 import HashDisplay from '../components/HashDisplay';
 
-const API_URL = 'http://localhost:3001';
+const API_URL = '/api';
 
 interface SessionsPageProps {
   onInvestigate?: (sessionId: string) => void;
@@ -22,7 +22,7 @@ export default function SessionsPage({ onInvestigate }: SessionsPageProps) {
 
   const fetchSessions = async () => {
     try {
-      const response = await axios.get(`${API_URL}/api/sessions`);
+      const response = await axios.get(`${API_URL}/sessions`);
       setSessions(response.data.sessions);
       setLoading(false);
     } catch (error) {
@@ -33,7 +33,7 @@ export default function SessionsPage({ onInvestigate }: SessionsPageProps) {
 
   const fetchSessionDetails = async (sessionId: string) => {
     try {
-      const response = await axios.get(`${API_URL}/api/session/${sessionId}`);
+      const response = await axios.get(`${API_URL}/session/${sessionId}`);
       setSelectedSession(response.data);
     } catch (error) {
       console.error('Failed to fetch session details:', error);
@@ -43,7 +43,7 @@ export default function SessionsPage({ onInvestigate }: SessionsPageProps) {
   const downloadAuditReport = async (sessionId: string) => {
     setDownloadingReport(true);
     try {
-      const response = await axios.get(`${API_URL}/api/session/${sessionId}/report`);
+      const response = await axios.get(`${API_URL}/session/${sessionId}/report`);
       
       // Create downloadable JSON file
       const blob = new Blob(

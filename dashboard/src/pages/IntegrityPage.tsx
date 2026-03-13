@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { CheckCircle, XCircle, AlertTriangle, RefreshCw } from 'lucide-react';
 
-const API_URL = 'http://localhost:3001';
+const API_URL = '/api';
 
 export default function IntegrityPage() {
   const [integrity, setIntegrity] = useState<any>(null);
@@ -16,7 +16,7 @@ export default function IntegrityPage() {
   const fetchIntegrity = async () => {
     setRefreshing(true);
     try {
-      const response = await axios.get(`${API_URL}/api/integrity`);
+      const response = await axios.get(`${API_URL}/integrity`);
       setIntegrity(response.data);
       setLoading(false);
     } catch (error) {

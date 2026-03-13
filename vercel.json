@@ -1,0 +1,58 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "dashboard/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/dashboard/$1"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/log",
+      "destination": "/api/log"
+    },
+    {
+      "source": "/api/sessions",
+      "destination": "/api/sessions"
+    },
+    {
+      "source": "/api/stats",
+      "destination": "/api/stats"
+    },
+    {
+      "source": "/api/analyze",
+      "destination": "/api/analyze"
+    },
+    {
+      "source": "/api/integrity",
+      "destination": "/api/integrity"
+    },
+    {
+      "source": "/api/demo",
+      "destination": "/api/demo"
+    },
+    {
+      "source": "/api/session/:sessionId",
+      "destination": "/api/session"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
+}

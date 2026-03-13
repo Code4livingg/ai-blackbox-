@@ -1,27 +1,30 @@
 import { useState } from 'react';
 import axios from 'axios';
-import { Send, Loader2 } from 'lucide-react';
+import { Send, Loader2, AlertCircle } from 'lucide-react';
 import RiskBadge from '../components/RiskBadge';
-import HashDisplay from '../components/HashDisplay';
 
-const API_URL = 'http://localhost:3001';
+const API_URL = '/api';
 
 export default function AnalyzePage() {
-  const [prompt, setPrompt] = useState('');
+  const [sessionId, setSessionId] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!prompt.trim()) return;
+    if (!sessionId.trim()) return;
 
     setLoading(true);
+    setError('');
+    setResult(null);
+
     try {
-      const response = await axios.post(`${API_URL}/api/analyze`, { prompt });
+      const response = await axios.post(`${API_URL}/analyze`, { sessionId });
       setResult(response.data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Analysis failed:', error);
-      alert('Analysis failed. Please try again.');
+      setError(error.response?.data?.error || 'Analysis failed. Please check the session ID and try again.');
     } finally {
       setLoading(false);
     }
@@ -29,23 +32,24 @@ export default function AnalyzePage() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold text-white mb-8">AI Analysis</h1>
+      <h1 className="text-3xl font-bold text-white mb-8">Session Analysis</h1>
 
       <form onSubmit={handleSubmit} className="mb-8">
         <div className="bg-slate-900 rounded-xl p-6 border border-slate-800 shadow-lg">
           <label className="block text-slate-300 mb-3 font-semibold text-lg">
-            Enter your prompt
+            Enter Session ID or Log ID
           </label>
-          <textarea
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            className="w-full bg-slate-950 text-white rounded-lg p-4 border-2 border-slate-800 focus:border-blue-500 focus:outline-none min-h-[120px] resize-y transition-colors"
-            placeholder="Ask anything..."
+          <input
+            type="text"
+            value={sessionId}
+            onChange={(e) => setSessionId(e.target.value)}
+            className="w-full bg-slate-950 text-white rounded-lg p-4 border-2 border-slate-800 focus:border-blue-500 focus:outline-none transition-colors font-mono"
+            placeholder="session-1, demo-1, etc."
             disabled={loading}
           />
           <button
             type="submit"
-            disabled={loading || !prompt.trim()}
+            disabled={loading || !sessionId.trim()}
             className="mt-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-slate-800 disabled:to-slate-800 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition-all shadow-lg shadow-blue-600/30 disabled:shadow-none"
           >
             {loading ? (
@@ -56,123 +60,93 @@ export default function AnalyzePage() {
             ) : (
               <>
                 <Send className="w-5 h-5" />
-                Analyze
+                Analyze Session
               </>
             )}
           </button>
         </div>
       </form>
 
+      {error && (
+        <div className="bg-red-500/10 border-2 border-red-500/50 rounded-xl p-6 mb-8 flex items-start gap-3">
+          <AlertCircle className="w-6 h-6 text-red-400 flex-shrink-0 mt-0.5" />
+          <div>
+            <h3 className="text-red-400 font-semibold mb-1">Analysis Failed</h3>
+            <p className="text-red-300 text-sm">{error}</p>
+          </div>
+        </div>
+      )}
+
       {result && (
         <div className="space-y-6">
-          {/* Cross-Model Comparison */}
-          {result.models && result.models.length > 0 ? (
-            <>
-              <div className="bg-slate-900 rounded-xl p-6 border border-slate-800 shadow-lg">
-                <h2 className="text-xl font-semibold text-white mb-4">Cross-Model Analysis</h2>
-                <p className="text-slate-400 text-sm mb-6">
-                  Comparing responses from {result.models.length} different AI models
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {result.models.map((model: any, index: number) => (
-                    <div key={index} className="bg-slate-950 rounded-lg p-5 border-2 border-slate-800 hover:border-slate-700 transition-colors">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold text-white">{model.modelName}</h3>
-                        <RiskBadge level={model.riskLevel} />
-                      </div>
-                      <div className="space-y-3">
-                        <div>
-                          <span className="text-slate-500 text-xs font-semibold uppercase tracking-wide">Response</span>
-                          <p className="text-slate-300 text-sm mt-2 leading-relaxed">
-                            {model.response.substring(0, 300)}
-                            {model.response.length > 300 && '...'}
-                          </p>
-                        </div>
-                        <div>
-                          <span className="text-slate-500 text-xs font-semibold uppercase tracking-wide">Risk Assessment</span>
-                          <p className="text-slate-400 text-xs mt-2 bg-slate-900 p-2 rounded border border-slate-800">
-                            {model.riskReason}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+          {/* Risk Overview */}
+          <div className="bg-slate-900 rounded-xl p-6 border border-slate-800 shadow-lg">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-white">Risk Assessment</h2>
+              <RiskBadge level={result.riskLevel} />
+            </div>
+            <p className="text-slate-300 leading-relaxed mb-4">
+              {result.explanation}
+            </p>
+            <div className="bg-slate-950 rounded-lg p-4 border border-slate-800">
+              <div className="text-slate-400 text-sm font-medium mb-2">Average Risk Score</div>
+              <div className="text-3xl font-bold text-white">{result.avgRiskScore}</div>
+            </div>
+          </div>
 
-              {/* Risk Comparison Summary */}
-              <div className="bg-slate-900 rounded-xl p-6 border border-slate-800 shadow-lg">
-                <h3 className="text-lg font-semibold text-white mb-4">Risk Comparison</h3>
-                <div className="grid grid-cols-3 gap-4">
-                  {result.models.map((model: any, index: number) => (
-                    <div key={index} className="bg-slate-950 rounded-lg p-4 border border-slate-800 text-center">
-                      <div className="text-slate-400 text-xs mb-2 font-medium">{model.modelName}</div>
-                      <RiskBadge level={model.riskLevel} />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </>
-          ) : (
-            /* Legacy single-model format */
-            <>
-              <div className="bg-slate-900 rounded-xl p-6 border border-slate-800 shadow-lg">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-semibold text-white">AI Response</h2>
-                  <RiskBadge level={result.riskLevel} />
-                </div>
-                <p className="text-slate-300 whitespace-pre-wrap leading-relaxed">
-                  {result.response}
-                </p>
-              </div>
-
-              <div className="bg-slate-900 rounded-xl p-6 border border-slate-800 shadow-lg">
-                <h3 className="text-lg font-semibold text-white mb-4">Risk Assessment</h3>
-                <div className="space-y-4">
-                  <div>
-                    <span className="text-slate-400 text-sm font-medium">Risk Level:</span>
-                    <div className="mt-2">
-                      <RiskBadge level={result.riskLevel} />
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 text-sm font-medium">Reason:</span>
-                    <p className="text-slate-300 mt-2 bg-slate-950 p-3 rounded-lg border border-slate-800">{result.riskReason}</p>
-                  </div>
-                </div>
-              </div>
-            </>
+          {/* Suspicious Patterns */}
+          {result.suspiciousPatterns && result.suspiciousPatterns.length > 0 && (
+            <div className="bg-slate-900 rounded-xl p-6 border border-slate-800 shadow-lg">
+              <h3 className="text-lg font-semibold text-white mb-4">Suspicious Patterns Detected</h3>
+              <ul className="space-y-2">
+                {result.suspiciousPatterns.map((pattern: string, index: number) => (
+                  <li key={index} className="flex items-start gap-3 text-slate-300">
+                    <span className="text-yellow-400 mt-1">⚠</span>
+                    <span>{pattern}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
 
-          {/* Audit Trail */}
+          {/* Recommendation */}
           <div className="bg-slate-900 rounded-xl p-6 border border-slate-800 shadow-lg">
-            <h3 className="text-lg font-semibold text-white mb-4">Audit Trail</h3>
-            <div className="space-y-4">
-              <div>
-                <span className="text-slate-400 text-sm font-medium block mb-2">Session ID:</span>
-                <code className="bg-slate-950 px-3 py-2 rounded-lg text-sm text-blue-400 font-mono block border border-slate-800">
-                  {result.sessionId}
-                </code>
+            <h3 className="text-lg font-semibold text-white mb-4">Recommendation</h3>
+            <p className="text-slate-300 leading-relaxed bg-slate-950 p-4 rounded-lg border border-slate-800">
+              {result.recommendation}
+            </p>
+          </div>
+
+          {/* Risk Distribution */}
+          <div className="bg-slate-900 rounded-xl p-6 border border-slate-800 shadow-lg">
+            <h3 className="text-lg font-semibold text-white mb-4">Risk Distribution</h3>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="bg-green-500/5 border-2 border-green-500/30 rounded-xl p-4 text-center">
+                <div className="text-green-400 text-sm font-semibold mb-2">LOW</div>
+                <div className="text-3xl font-bold text-white">{result.riskDistribution?.LOW || 0}</div>
               </div>
-              <div>
-                <span className="text-slate-400 text-sm font-medium block mb-2">Audit Entry ID:</span>
-                <code className="bg-slate-950 px-3 py-2 rounded-lg text-sm text-blue-400 font-mono block border border-slate-800">
-                  {result.auditEntryId}
-                </code>
+              <div className="bg-yellow-500/5 border-2 border-yellow-500/30 rounded-xl p-4 text-center">
+                <div className="text-yellow-400 text-sm font-semibold mb-2">MEDIUM</div>
+                <div className="text-3xl font-bold text-white">{result.riskDistribution?.MEDIUM || 0}</div>
               </div>
-              <div>
-                <HashDisplay
-                  hash={result.hash}
-                  label="Entry Hash"
-                  truncate={false}
-                />
+              <div className="bg-red-500/5 border-2 border-red-500/30 rounded-xl p-4 text-center">
+                <div className="text-red-400 text-sm font-semibold mb-2">HIGH</div>
+                <div className="text-3xl font-bold text-white">{result.riskDistribution?.HIGH || 0}</div>
               </div>
-              <div>
-                <HashDisplay
-                  hash={result.previousHash}
-                  label="Previous Hash"
-                  truncate={false}
-                />
+            </div>
+          </div>
+
+          {/* Analysis Details */}
+          <div className="bg-slate-900 rounded-xl p-6 border border-slate-800 shadow-lg">
+            <h3 className="text-lg font-semibold text-white mb-4">Analysis Details</h3>
+            <div className="space-y-3 text-sm">
+              <div className="flex justify-between">
+                <span className="text-slate-400">Entries Analyzed:</span>
+                <span className="text-white font-semibold">{result.entriesAnalyzed}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Average Risk Score:</span>
+                <span className="text-white font-semibold">{result.avgRiskScore}</span>
               </div>
             </div>
           </div>
